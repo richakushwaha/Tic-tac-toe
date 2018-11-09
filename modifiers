@@ -22,3 +22,8 @@ modifier alreadyMarked(uint _x, uint _y)
         require(board[_x][_y] != 0," You cant play here!");
         _;
     }
+modifier notOrganizer()
+    {
+        require(!(msg.sender == organizer), "Organizer cannot play");
+        _;
+}
