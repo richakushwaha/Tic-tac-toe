@@ -1,7 +1,7 @@
 pragma solidity ^0.4.7;
 contract TicTacToe {
 
-    uint[3][3] board;
+    uint[][3] board;
     mapping(address => uint) participantNumber;
     mapping(uint => address) playerTrack;
     mapping(address => bool) playerTurn;
@@ -17,6 +17,7 @@ contract TicTacToe {
         address playerId;
         bool winner;
     }
+    event printInt(uint);
     
     Player[] participants;
     
@@ -25,7 +26,7 @@ contract TicTacToe {
         for(uint i=0; i<3; i++)
         {
             for(uint j=0; j<3; j++)
-                board[i][j] = 0;
+                board[i].push(0);
         }
         
         participantRegistered = 0;
@@ -73,9 +74,9 @@ contract TicTacToe {
         require (participantRegistered == 2 , "Exactly two players can participate! ");
         _;
     }
-    modifier alreadyMarked(uint _x, uint _y)
+    modifier notAlreadyMarked(uint _x, uint _y)
     {
-        require(board[_x][_y] != 0," You cannot play here!");
+        require(!(board[_x][_y] > 0),"You cannot play here!");
         _;
     }
 
@@ -104,12 +105,13 @@ contract TicTacToe {
     
     function setMove(uint x, uint y)
     registered()
-    alreadyMarked(x, y)
+    // notAlreadyMarked(x, y)
     gameOverMod()
     exactlyTwoPlayer()
     indexInRange(x, y)
     cannotPlayAgain()
     {
+        emit printInt(board[x][y]);
         uint temp = participantNumber[msg.sender];
         board[x][y] = temp;
         
@@ -192,3 +194,4 @@ contract TicTacToe {
         }
     }
 }
+
