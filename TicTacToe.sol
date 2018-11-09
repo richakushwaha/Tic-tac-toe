@@ -81,6 +81,7 @@ contract TicTacToe {
 
     
     function registerPlayers()
+    notOrganizer()
     notAlreadyRegistered()
     onlyTwoPlayer()
     {
