@@ -1,18 +1,21 @@
 pragma solidity ^0.4.7;
 contract TicTacToe {
 
-    uint[3][] board;
+    uint[3][3] board;
     mapping(address => uint) participantNumber;
     mapping(uint => address) playerTrack;
     mapping(address => bool) playerTurn;
     uint participantRegistered;
     bool flag;
+    bool gameOver;
+    bool draw;
+    address organizer;
+    uint numberOfMovesPlayed;
    
     struct Player
     {
         address playerId;
-        // bool movePLayed;
-        uint numberOfMovesPlayed;
+        bool winner;
     }
     
     Player[] participants;
@@ -27,10 +30,17 @@ contract TicTacToe {
         
         participantRegistered = 0;
         flag = true;
+        draw = false;
+        organizer = msg.sender;
+    }
+    modifier notOrganizer()
+    {
+        require(!(msg.sender == organizer), "Organizer cannot play");
+        _;
     }
     modifier onlyTwoPlayer()
     {
-        require(participantRegistered <= 2, "There can only be two players");
+        require(participantRegistered <= 1 , "There can only be two players");
         _;
     }
     
@@ -44,16 +54,41 @@ contract TicTacToe {
         require(flag == playerTurn[msg.sender], "You already played your move");
         _;
     }
+    modifier notAlreadyRegistered()
+    {
+        require ( !(participantNumber[msg.sender] > 0) , "You are already registered in the game.");
+        _;
+    }
+    modifier gameOverMod()
+    {
+        require(gameOver == false && draw == false," Game over! ");
+        _;
+    } 
+    modifier registered()
+    {
+        require(!(participantNumber[msg.sender] == 0), " You are not registered for this game! ");
+        _;
+    }
+    modifier exactlyTwoPlayer(){
+        require (participantRegistered == 2 , "Exactly two players can participate! ");
+        _;
+    }
+    modifier alreadyMarked(uint _x, uint _y)
+    {
+        require(board[_x][_y] != 0," You cannot play here!");
+        _;
+    }
+
     
     function registerPlayers()
+    notAlreadyRegistered()
     onlyTwoPlayer()
     {
         participantRegistered += 1;
         participantNumber[msg.sender] = participantRegistered;
         Player newPlayer;
         newPlayer.playerId = msg.sender;
-        // newPlayer.movePLayed = false;
-        newPlayer.numberOfMovesPlayed = 0;
+        newPlayer.winner = false;
         
         participants.push(newPlayer);
         if(participantRegistered == 1)
@@ -67,32 +102,92 @@ contract TicTacToe {
     }
     
     function setMove(uint x, uint y)
+    registered()
+    alreadyMarked(x, y)
+    gameOverMod()
+    exactlyTwoPlayer()
     indexInRange(x, y)
     cannotPlayAgain()
-    // noWinner()
     {
         uint temp = participantNumber[msg.sender];
         board[x][y] = temp;
         
         flag = !flag;
+        numberOfMovesPlayed += numberOfMovesPlayed + 1;
         
-        if(evaluateDiagonal(temp))
+        if(evaluateDiagonal(temp) || checkRows(temp) || checkColumn(temp))
         {
-            
+            gameOver = true;
+            participants[temp-1].winner = true;
         }
         
+        if( numberOfMovesPlayed == 9 && gameOver== false)
+        {
+            draw = true;
+        }
     }
     
     function evaluateDiagonal(uint number) returns(bool)
     {
-        if(number = board[0][0] && board[0][0]==board[1][1] && board[2][2]==board[1][1])
+        if(number == board[0][0] && board[0][0]==board[1][1] && board[2][2]==board[1][1])
         {
             return true;
         }
-        if(number = board[0][2] && board[0][2]==board[1][1] && board[2][0]==board[1][1])
+        if(number == board[0][2] && board[0][2]==board[1][1] && board[2][0]==board[1][1])
         {
             return true;
         }
         return false;
+    }
+    
+    function checkRows(uint number) returns(bool)
+    {
+        if(number == board[0][0] && board[0][0]==board[0][1] && board[0][2]==board[0][1])
+        {
+            return true;
+        }
+        if(number == board[1][0] && board[1][0]==board[1][1] && board[1][0]==board[1][2])
+        {
+            return true;
+        }
+        if(number == board[2][0] && board[2][0]==board[2][1] && board[2][2]==board[2][1])
+        {
+            return true;
+        }
+        return false;
+    }
+    
+    function checkColumn(uint number) returns(bool)
+    {
+        if(number == board[0][0] && board[0][0]==board[1][0] && board[1][0]==board[2][0])
+        {
+            return true;
+        }
+        if(number == board[0][1] && board[0][1]==board[1][1] && board[1][1]==board[2][1])
+        {
+            return true;
+        }
+        if(number == board[0][2] && board[0][2]==board[1][2] && board[1][2]==board[2][2])
+        {
+            return true;
+        }
+        return false;
+    }
+    
+    function getWinner() view returns(string)
+    {
+        if(draw == true)
+        {
+            return "Draw";
+        }
+        else
+        {
+            bool val = participants[0].winner;
+            if(val==true)
+            {
+                return "Player1";
+            }
+            return "Player2";
+        }
     }
 }
