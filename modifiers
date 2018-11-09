@@ -4,7 +4,7 @@ modifier onlyTwoPlayer(){
     }
     modifier notAlreadyRegistered()
     {
-        require ( !(participantNumber[msg.sender] > 0) , "You are already registered in the quiz.");
+        require ( !(participantNumber[msg.sender] > 0) , "You are already registered in the game.");
         _;
     }
     modifier gameOverMod()
@@ -12,3 +12,8 @@ modifier onlyTwoPlayer(){
         require(gameOver == false," Game over! ");
         _;
     }check 
+    modifier registered()
+    {
+        require(!(participantNumber[msg.sender] == 0), " You are not registered for this game! ");
+        _;
+        }
