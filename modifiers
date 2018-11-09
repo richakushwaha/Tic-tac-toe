@@ -17,3 +17,8 @@ modifier onlyTwoPlayer(){
         require(!(participantNumber[msg.sender] == 0), " You are not registered for this game! ");
         _;
         }
+modifier alreadyMarked(uint _x, uint _y)
+    {
+        require(board[_x][_y] != 0," You cant play here!");
+        _;
+    }
